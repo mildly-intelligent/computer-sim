@@ -91,10 +91,24 @@ impl Ram {
     pub fn store(&mut self, addr: u16, value: u8) {
         self.0[addr as usize] = value;
     }
+
+    pub fn store_reg(&mut self, addr: u16, value: Register) {
+        self.0[addr as usize] = value.low;
+        self.0[addr as usize + 1] = value.high;
+    }
+
+    pub unsafe fn as_str(&self) -> &str {
+        unsafe { str::from_utf8_unchecked(&self.0) }
+    }
 }
 impl Default for Ram {
     fn default() -> Self {
         Self([0; SIZE])
+    }
+}
+impl std::fmt::Display for Ram {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0.map(|a| format!("{a:02X}")).join(""))
     }
 }
 

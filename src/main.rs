@@ -11,5 +11,6 @@ fn main() {
         flags: 0b00000000_00000000.into(),
     };
 
-    println!("Hello, world!");
+    // println!("{}", mem.ram);
+    mem.ram.store(0xFFF4, 0x4F);
 }
