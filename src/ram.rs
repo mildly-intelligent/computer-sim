@@ -64,8 +64,20 @@ pub struct Register {
     pub low: u8,
 }
 impl Register {
+    pub fn new() -> Self {
+        Self {
+            high: 0,
+            low: 0,
+        }
+    }
+
     pub fn raw(self) -> u16 {
         self.low as u16 * 0x100 + self.high as u16
+    }
+}
+impl std::fmt::Display for Register {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "0x{:02X}{:02X}", self.low, self.high)
     }
 }
 impl From<Register> for u16 {
@@ -76,23 +88,28 @@ impl From<Register> for u16 {
 impl Into<Register> for u16 {
     fn into(self) -> Register {
         Register {
-            high: ((self & 0b11111111_00000000) > 8) as u8,
-            low: (self & 0b00000000_11111111) as u8
+            high: ((self & 0xFF00) >> 8) as u8,
+            low: (self & 0x00FF) as u8
         }
     }
 }
 
 pub struct Ram([u8; SIZE]);
 impl Ram {
-    pub fn get(self, addr: u16) -> u8 {
+    pub fn get(&self, addr: u16) -> u8 {
         self.0[addr as usize]
+    }
+
+    pub fn load_reg(&self, addr:u16, reg: &mut Register) {
+        reg.low = self.get(addr);
+        reg.high = self.get(addr+1);
     }
 
     pub fn store(&mut self, addr: u16, value: u8) {
         self.0[addr as usize] = value;
     }
 
-    pub fn store_reg(&mut self, addr: u16, value: Register) {
+    pub fn store_reg(&mut self, addr: u16, value: &Register) {
         self.0[addr as usize] = value.low;
         self.0[addr as usize + 1] = value.high;
     }
@@ -122,6 +139,16 @@ pub struct Memory {
     pub flags: Register,
 }
 
-impl Memory {
-
+impl Default for Memory {
+    fn default() -> Self {
+        Self {
+            ram:   Ram::default(),
+            ax:    u16::into(0b00000000_00000000),
+            bx:    u16::into(0b00000000_00000000),
+            cx:    u16::into(0b00000000_00000000),
+            dx:    u16::into(0b00000000_00000000),
+            pc:    u16::into(0b00000000_00000000),
+            flags: u16::into(0b00000000_00000000),
+        }
+    }
 }

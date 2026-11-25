@@ -1,16 +1,10 @@
-mod ram;
+use computer::prelude::*;
 
 fn main() {
-    let mut mem = ram::Memory {
-        ram:   ram::Ram::default(),
-        ax:    0b00000000_00000000.into(),
-        bx:    0b00000000_00000000.into(),
-        cx:    0b00000000_00000000.into(),
-        dx:    0b00000000_00000000.into(),
-        pc:    0b00000000_00000000.into(),
-        flags: 0b00000000_00000000.into(),
-    };
+    let mut mem = ram::Memory::default();
 
     // println!("{}", mem.ram);
-    mem.ram.store(0xFFF4, 0x4F);
+    mem.ram.store_reg(0xFFF4, &mem.ax);
+    mem.ram.load_reg(0xFFF4, &mut mem.bx);
+    println!("{}", mem.bx)
 }
