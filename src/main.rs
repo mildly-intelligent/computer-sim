@@ -1,7 +1,7 @@
 use computer::prelude::*;
 
 fn main() {
-    let mut mem = ram::Memory::default();
+    let mut mem = memory::Memory::default();
 
     // println!("{}", mem.ram);
     mem.ram.store_reg(0xFFF4, &mem.ax);
