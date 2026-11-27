@@ -11,6 +11,11 @@ impl Ram {
         self.0[addr as usize]
     }
 
+    /// Gets the 16-bit value at `addr`
+    pub fn getw(&self, addr: u16) -> u16 {
+        ((self.0[addr as usize] as u16) << 8) + self.0[addr as usize + 1] as u16
+    }
+
     /// Reads two-byte value at `addr` into the register `reg`
     pub fn load_reg(&self, addr:u16, reg: &mut Register) {
         reg.low = self.get(addr);
@@ -47,6 +52,7 @@ impl std::fmt::Display for Ram {
 
 // #region Registers
 /// A two-byte value
+#[derive(Clone, Copy)]
 pub struct Register {
     pub high: u8,
     pub low: u8,
@@ -142,28 +148,3 @@ impl core::ops::BitOr<Flags> for Register {
     }
 }
 // #endregion
-
-/// Will be reworked later, currently stores ram and registers
-pub struct Memory {
-    pub ram: Ram,
-    pub ax: Register,
-    pub bx: Register,
-    pub cx: Register,
-    pub dx: Register,
-    pub pc: Register,
-    pub flags: Register,
-}
-
-impl Default for Memory {
-    fn default() -> Self {
-        Self {
-            ram:   Ram::default(),
-            ax:    Register::default(),
-            bx:    Register::default(),
-            cx:    Register::default(),
-            dx:    Register::default(),
-            pc:    Register::default(),
-            flags: Register::default(),
-        }
-    }
-}
