@@ -1,4 +1,4 @@
-use crate::memory::{Flags, Ram, Register};
+use crate::{memory::{Flags, Ram, Register}, proc::Args};
 
 /// Contains the types that instructions can take
 #[derive(Clone)]
@@ -68,8 +68,12 @@ impl Cpu {
         }
     }
 
-    pub fn ADC(&mut self, a: Value) {todo!()}
-    pub fn ADD(&mut self, a: Value) {
+    pub fn ADC(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+    }
+    pub fn ADD(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+
         let a = match a {
             Value::Reg(reg) => u16::from(*self.get_reg(reg)),
             Value::Adr(adr) => self.ram.getw(adr),
@@ -84,12 +88,16 @@ impl Cpu {
             ((a+r) as u16).into()
         }
     }
-    pub fn AND(&mut self, a: Value) {todo!()}
-    // pub fn CMP(&mut self, a: Value) {todo!()}
-    pub fn DEC(&mut self) {
+    pub fn AND(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+    }
+    // pub fn CMP(&mut self, args: Args) {todo!()}
+    pub fn DEC(&mut self, args: Args) {
         self.ax = (u16::from(self.ax) - 1).into();
     }
-    pub fn DIV(&mut self, a: Value) {
+    pub fn DIV(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+
         let a = match a {
             Value::Reg(reg) => u16::from(*self.get_reg(reg)),
             Value::Adr(adr) => self.ram.getw(adr),
@@ -104,13 +112,17 @@ impl Cpu {
             ((a/r) as u16).into()
         }
     }
-    pub fn HLT(&mut self) {todo!()}
-    pub fn INC(&mut self) {
+    pub fn HLT(&mut self, args: Args) {
+    }
+    pub fn INC(&mut self, args: Args) {
         self.ax = (u16::from(self.ax) + 1).into();
     }
     // pub fn INT(&mut self) {todo!()}
     // TODO: JUMPS
-    pub fn MOV(&mut self, a: Value, b: Value) {
+    pub fn MOV(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+        let b = args.1.expect("Wrong number of arguments");
+
         match a {
             Value::Reg(mut regA) => {
                 match b {
@@ -129,7 +141,9 @@ impl Cpu {
             Value::Imm(_) => panic!("First argument to MOV cannot be an immediate value"),
         }
     }
-    pub fn MUL(&mut self, a: Value) {
+    pub fn MUL(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+
         let a = match a {
             Value::Reg(reg) => u16::from(*self.get_reg(reg)),
             Value::Adr(adr) => self.ram.getw(adr),
@@ -145,16 +159,30 @@ impl Cpu {
         }
     }
     // pub fn NEG(&mut self) {todo!()}
-    pub fn NOP(&mut self) {}
-    pub fn NOT(&mut self, a: Value) {todo!()}
-    pub fn OR(&mut self, a: Value) {todo!()}
-    pub fn POP(&mut self) {todo!()}
-    pub fn PUSH(&mut self, a: Value) {todo!()}
-    pub fn RCR(&mut self) {todo!()}
-    pub fn RCL(&mut self) {todo!()}
-    pub fn ROR(&mut self) {todo!()}
-    pub fn ROL(&mut self) {todo!()}
-    pub fn SUB(&mut self, a: Value) {
+    pub fn NOP(&mut self, args: Args) {
+    }
+    pub fn NOT(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+    }
+    pub fn OR(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+    }
+    pub fn POP(&mut self, args: Args) {
+    }
+    pub fn PUSH(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+    }
+    pub fn RCR(&mut self, args: Args) {
+    }
+    pub fn RCL(&mut self, args: Args) {
+    }
+    pub fn ROR(&mut self, args: Args) {
+    }
+    pub fn ROL(&mut self, args: Args) {
+    }
+    pub fn SUB(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+
         // this may not work i literally just swapped + to - and it might've broken things
         let a = match a {
             Value::Reg(reg) => u16::from(*self.get_reg(reg)),
@@ -170,5 +198,7 @@ impl Cpu {
             ((a-r) as u16).into()
         }
     }
-    pub fn XOR(&mut self, a: Value) {todo!()}
+    pub fn XOR(&mut self, args: Args) {
+        let a = args.0.expect("Wrong number of arguments");
+    }
 }
