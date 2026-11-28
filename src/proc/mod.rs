@@ -85,7 +85,28 @@ impl Instruction {
     }
 
     pub fn num_args(self) -> u8 {
-        
+        match self {
+            Self::DEC  |
+            Self::HLT  |
+            Self::INC  |
+            Self::NOP  |
+            Self::POP  |
+            Self::RCR  |
+            Self::RCL  |
+            Self::ROR  |
+            Self::ROL => 0,
+            Self::ADC  |
+            Self::ADD  |
+            Self::AND  |
+            Self::DIV  |
+            Self::MUL  |
+            Self::NOT  |
+            Self::OR   |
+            Self::PUSH |
+            Self::SUB  |
+            Self::XOR => 1,
+            Self::MOV => 2,
+        }
     }
 
     pub fn get_func(self) -> fn(&mut Cpu, Args) {

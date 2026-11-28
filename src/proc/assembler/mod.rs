@@ -11,6 +11,7 @@ pub enum Error {
     NumericOverflow(String),
     UnknownRegister(String),
     UnknownInstruction(String),
+    SyntaxError(tokenize::LeafToken),
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -21,6 +22,7 @@ impl std::fmt::Display for Error {
             Self::NumericOverflow(number) => write!(f, "'{number}' is outside the 16-bit range"),
             Self::UnknownRegister(reg) => write!(f, "The register '{reg}' does not exist"),
             Self::UnknownInstruction(op) => write!(f, "The instruction '{op}' does not exist"),
+            Self::SyntaxError(token) => write!(f, "Token '{token:#?}' is out of place"),
         }
     }
 }

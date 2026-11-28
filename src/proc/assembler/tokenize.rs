@@ -1,10 +1,12 @@
 #[derive(Debug, PartialEq, Clone)]
 pub(super) enum Token<'a> {
-    Comment,
     Op(&'a Token<'a>, &'a Token<'a>),
     Instruction(crate::proc::Instruction),
-    Operands(Vec<Token<'a>>),
+    Operands0,
+    Operands1(&'a Token<'a>),
+    Operands2(&'a Token<'a>, &'a Token<'a>),
     Operand(&'a Token<'a>),
+    Comment,
     Immediate(u16),
     Address(u16),
     Register(u8),
@@ -63,8 +65,31 @@ impl<'a> TryFrom<UnqualifiedToken> for Token<'a> {
     }
 }
 
+#[derive(Debug)]
+pub enum LeafToken {
+    Comment,
+    Immediate(u16),
+    Address(u16),
+    Register(u8),
+    Word(String),
+    Unqualified(UnqualifiedToken),
+}
+impl<'a> From<Token<'a>> for LeafToken {
+    fn from(value: Token) -> Self {
+        match value {
+            Token::Comment =>             Self::Comment,
+            Token::Immediate(imm) => Self::Immediate(imm),
+            Token::Address(adr) =>   Self::Address(adr),
+            Token::Register(reg) =>   Self::Register(reg),
+            Token::Word(word) =>  Self::Word(word),
+            Token::Unqualified(uq) => Self::Unqualified(uq),
+            _ => panic!("Token '{value:#?}' is not a leaf"),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
-pub(super) enum UnqualifiedToken {
+pub enum UnqualifiedToken {
     Instruction(String),
     Immediate(String),
     ImmediateHex(String),
@@ -164,9 +189,20 @@ pub(super) fn tokenize_pass4<'a>(tokens: Vec<Token<'a>>) -> Result<Vec<Token<'a>
     while i < tokens.len() {
         let token = &tokens[i];
 
-        match token {
-            Token::Instruction(op) => op.
-        }
+        let tmp = match token {
+            Token::Instruction(op) => Ok({
+                match op.clone().num_args() {
+                    0 => Token::Op(&token, &Token::Operands0),
+                    1 => Token::Op(&token, &Token::Operands1(&Token::Operand(&tokens[i+1]))),
+                    2 => Token::Op(&token, &Token::Operands2(&Token::Operand(&tokens[i+1]), &Token::Operand(&tokens[i+2]))),
+                    _ => panic!("unreachable"),
+                }
+            }),
+            Token::Comment => Ok(token.clone()),
+            _ => Err(super::Error::SyntaxError(token.clone().into())),
+        };
+
+        dbg!(tmp);
     }
 
     Ok(tokens_out)

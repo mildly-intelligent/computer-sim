@@ -1,5 +1,6 @@
 
 use super::tokenize::{self, Token::*, UnqualifiedToken as uq};
+use crate::proc::Instruction as InstructionSet;
 
 const ASM: &'static str = "
     ; This is a test comment
@@ -15,7 +16,7 @@ fn tokenize_pass1() {
         Word(String::from("MOV")), Word(String::from("%ax")), Word(String::from("6")),
         Word(String::from("ADD")), Word(String::from("0x0050")),
         Word(String::from("MOV")), Word(String::from("$0x5009")), Word(String::from("%bx")), Comment,
-        Word(String::from("HLT"))
+        Word(String::from("HLT")),
     ]);
 }
 
@@ -28,7 +29,7 @@ fn tokenize_pass2() {
         Unqualified(uq::Instruction(String::from("MOV"))), Unqualified(uq::Register(String::from("ax"))), Unqualified(uq::Immediate(String::from("6"))),
         Unqualified(uq::Instruction(String::from("ADD"))), Unqualified(uq::ImmediateHex(String::from("0050"))),
         Unqualified(uq::Instruction(String::from("MOV"))), Unqualified(uq::Address(String::from("5009"))), Unqualified(uq::Register(String::from("bx"))), Comment,
-        Unqualified(uq::Instruction(String::from("HLT")))
+        Unqualified(uq::Instruction(String::from("HLT"))),
     ]);
 }
 
@@ -39,10 +40,10 @@ fn tokenize_pass3() {
 
     assert_eq!(tokenize::tokenize_pass3(pass2).unwrap(), vec![
         Comment,
-        Instruction(0x13), Register(0), Immediate(6),
-        Instruction(0x0A), Immediate(0x0050),
-        Instruction(0x13), Address(0x5009), Register(1), Comment,
-        Instruction(0x01)
+        Instruction(InstructionSet::MOV), Register(0), Immediate(6),
+        Instruction(InstructionSet::ADD), Immediate(0x0050),
+        Instruction(InstructionSet::MOV), Address(0x5009), Register(1), Comment,
+        Instruction(InstructionSet::HLT),
     ]);
 }
 
