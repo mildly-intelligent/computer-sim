@@ -1,8 +1,9 @@
 #[derive(Debug, PartialEq, Clone)]
 pub(super) enum Token<'a> {
     Comment,
-    Op(&'a Token<'a>, Vec<&'a Token<'a>>),
-    Instruction(u8),
+    Op(&'a Token<'a>, &'a Token<'a>),
+    Instruction(crate::proc::Instruction),
+    Operands(Vec<Token<'a>>),
     Operand(&'a Token<'a>),
     Immediate(u16),
     Address(u16),
@@ -15,8 +16,9 @@ impl<'a> TryFrom<UnqualifiedToken> for Token<'a> {
 
     fn try_from(value: UnqualifiedToken) -> Result<Self, Self::Error> {
         match value {
-            UnqualifiedToken::Instruction(_) => {
-                todo!()
+            UnqualifiedToken::Instruction(op) => {
+                crate::proc::Instruction::try_from(op)
+                    .and_then(|a| Ok(Token::Instruction(a)))
             },
             UnqualifiedToken::Immediate(imm) => {
                 let value: u16 = imm.parse::<u16>()
@@ -94,7 +96,7 @@ impl TryFrom<String> for UnqualifiedToken {
 /// Separates out [comments](Token::Comment) and splits lines into individual [words](Token::Word) (separates by space)
 pub(super) fn tokenize_pass1<'a>(asm: String) -> Result<Vec<Token<'a>>, super::Error> {
     let lines = asm.split('\n').collect::<Vec<_>>();
-    let mut tokens = vec![];
+    let mut tokens = Vec::new();
 
     for line in lines {
         let line = line.split(';').collect::<Vec<_>>();
@@ -103,6 +105,7 @@ pub(super) fn tokenize_pass1<'a>(asm: String) -> Result<Vec<Token<'a>>, super::E
         let mut line = line[0]
             .trim()
             .split(' ')
+            .filter(|a| *a != "")
             .map(|a| Token::Word(a.to_string()))
             .collect::<Vec<_>>();
 
@@ -117,13 +120,13 @@ pub(super) fn tokenize_pass1<'a>(asm: String) -> Result<Vec<Token<'a>>, super::E
 /// 
 /// Converts [Token::Word] into unqualified tokens. See [UnqualifiedToken] for a description on what that means
 pub(super) fn tokenize_pass2<'a>(tokens: Vec<Token<'a>>) -> Result<Vec<Token<'a>>, super::Error> {
-    let mut tokens_out = tokens.iter().cloned().collect::<Vec<_>>();
+    let mut tokens_out = Vec::new();
 
     for token in tokens {
-        match token {
-            Token::Word(token) => tokens_out.push(Token::Unqualified(UnqualifiedToken::try_from(token)?)),
-            other => tokens_out.push(other),
-        }
+        tokens_out.push(match token {
+            Token::Word(token) => Token::Unqualified(UnqualifiedToken::try_from(token)?),
+            other => other,
+        })
     }
 
     Ok(tokens_out)
@@ -133,12 +136,36 @@ pub(super) fn tokenize_pass2<'a>(tokens: Vec<Token<'a>>) -> Result<Vec<Token<'a>
 /// 
 /// Converts the [unqualified](UnqualifiedToken) tokens into qualified tokens. 
 pub(super) fn tokenize_pass3<'a>(tokens: Vec<Token<'a>>) -> Result<Vec<Token<'a>>, super::Error> {
-    let mut tokens_out = tokens.iter().cloned().collect::<Vec<_>>();
+    let mut tokens_out = Vec::new();
 
     for token in tokens {
+        tokens_out.push(match token {
+            Token::Unqualified(token) => Token::try_from(token)?,
+            other => other,
+        })
+    }
+
+    Ok(tokens_out)
+}
+
+/// Fourth pass of the tokenization process
+/// 
+/// Turns the flattened token list into a tree.
+/// ## Examples
+/// ```
+///     use Token::*;
+///     let start = vec![Instruction(0x13), Register(0), Immediate(6)];
+///     assert_eq!(tokenize_pass4(start).unwrap(), vec![Op(&Instruction(0x13)), &Operands(vec![&Operand(&Register(0)), &Operand(&Immediate(6))])]);
+/// ```
+pub(super) fn tokenize_pass4<'a>(tokens: Vec<Token<'a>>) -> Result<Vec<Token<'a>>, super::Error> {
+    let mut tokens_out = Vec::new();
+    
+    let i = 0;
+    while i < tokens.len() {
+        let token = &tokens[i];
+
         match token {
-            Token::Unqualified(token) => tokens_out.push(Token::try_from(token)?),
-            other => tokens_out.push(other),
+            Token::Instruction(op) => op.
         }
     }
 

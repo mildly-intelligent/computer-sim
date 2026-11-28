@@ -55,7 +55,7 @@ impl<'a> Into<(Option<(u8, u8)>, Option<(u8, u8)>)> for Args {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Instruction {
     DEC =  0x00,
     HLT =  0x01,
@@ -82,6 +82,10 @@ pub enum Instruction {
 impl Instruction {
     pub fn get_opcode(self) -> u8 {
         self as isize as u8
+    }
+
+    pub fn num_args(self) -> u8 {
+        
     }
 
     pub fn get_func(self) -> fn(&mut Cpu, Args) {

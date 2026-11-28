@@ -21,12 +21,28 @@ fn tokenize_pass1() {
 
 #[test]
 fn tokenize_pass2() {
-    assert_eq!(tokenize::tokenize_pass1(ASM.to_string()).unwrap(), vec![
+    let pass1 = tokenize::tokenize_pass1(ASM.to_string()).unwrap();
+
+    assert_eq!(tokenize::tokenize_pass2(pass1).unwrap(), vec![
         Comment,
-        Unqualified(uq::Instruction(String::from("MOV"))), Unqualified(uq::Register(String::from("%ax"))), Unqualified(uq::Immediate(String::from("6"))),
-        Unqualified(uq::Instruction(String::from("ADD"))), Unqualified(uq::ImmediateHex(String::from("0x0050"))),
-        Unqualified(uq::Instruction(String::from("MOV"))), Unqualified(uq::Address(String::from("$0x5009"))), Unqualified(uq::Register(String::from("%bx"))), Comment,
+        Unqualified(uq::Instruction(String::from("MOV"))), Unqualified(uq::Register(String::from("ax"))), Unqualified(uq::Immediate(String::from("6"))),
+        Unqualified(uq::Instruction(String::from("ADD"))), Unqualified(uq::ImmediateHex(String::from("0050"))),
+        Unqualified(uq::Instruction(String::from("MOV"))), Unqualified(uq::Address(String::from("5009"))), Unqualified(uq::Register(String::from("bx"))), Comment,
         Unqualified(uq::Instruction(String::from("HLT")))
+    ]);
+}
+
+#[test]
+fn tokenize_pass3() {
+    let pass1 = tokenize::tokenize_pass1(ASM.to_string()).unwrap();
+    let pass2 = tokenize::tokenize_pass2(pass1).unwrap();
+
+    assert_eq!(tokenize::tokenize_pass3(pass2).unwrap(), vec![
+        Comment,
+        Instruction(0x13), Register(0), Immediate(6),
+        Instruction(0x0A), Immediate(0x0050),
+        Instruction(0x13), Address(0x5009), Register(1), Comment,
+        Instruction(0x01)
     ]);
 }
 
@@ -34,7 +50,7 @@ fn tokenize_pass2() {
 // fn tokenize() {
 //     assert_eq!(tokenize::tokenize(ASM.to_string()), vec![
 //         Comment,
-//         Op(&Instruction(0x13), vec![&Operand(&Register(0)), &Operand(&Immediate(0x0006))]),
+//         Op(&Instruction(0x13), vec![&Operand(&Register(0)), &Operand(&Immediate(6))]),
 //         Op(&Instruction(0x0A), vec![&Operand(&Immediate(0x0050))]),
 //         Op(&Instruction(0x13), vec![&Address(0x5009), &Operand(&Register(1))]), Comment,
 //         Op(&Instruction(0x01), vec![])
