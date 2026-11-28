@@ -4,7 +4,7 @@ use crate::memory::{Flags, Ram, Register};
 #[derive(Clone)]
 pub enum Value {
     /// A register
-    Reg(Box<Register>),
+    Reg(u8),
     /// An address in memory
     Adr(u16),
     /// A direct value
@@ -19,8 +19,8 @@ impl From<&Value> for Value16 {
     fn from(value: &Value) -> Self {
         match value {
             Value::Reg(val) => Self {
-                high: val.high,
-                low: val.low,
+                high: *val,
+                low: 0x00,
             },
             Value::Adr(val)  |
             Value::Imm(val) => Self {
@@ -55,10 +55,23 @@ pub struct Cpu {
 #[allow(non_snake_case)]
 #[allow(unused)]
 impl Cpu {
+    pub fn get_reg(&self, index: u8) -> Box<Register> {
+        match index {
+            0 => Box::new(self.ax),
+            1 => Box::new(self.bx),
+            2 => Box::new(self.cx),
+            3 => Box::new(self.dx),
+            4 => Box::new(self.sp),
+            5 => Box::new(self.ip),
+            6 => Box::new(self.flag),
+            _ => panic!(),
+        }
+    }
+
     pub fn ADC(&mut self, a: Value) {todo!()}
     pub fn ADD(&mut self, a: Value) {
         let a = match a {
-            Value::Reg(reg) => u16::from(*reg),
+            Value::Reg(reg) => u16::from(*self.get_reg(reg)),
             Value::Adr(adr) => self.ram.getw(adr),
             Value::Imm(imm) => imm,
         } as u32;
@@ -78,7 +91,7 @@ impl Cpu {
     }
     pub fn DIV(&mut self, a: Value) {
         let a = match a {
-            Value::Reg(reg) => u16::from(*reg),
+            Value::Reg(reg) => u16::from(*self.get_reg(reg)),
             Value::Adr(adr) => self.ram.getw(adr),
             Value::Imm(imm) => imm,
         } as u32;
@@ -101,18 +114,24 @@ impl Cpu {
         match a {
             Value::Reg(mut regA) => {
                 match b {
-                    Value::Reg(regB) => regA = regB,
+                    Value::Reg(regB) => *self.get_reg(regA) = *self.get_reg(regB),
                     Value::Adr(_) => panic!("Second argument to MOV cannot be an address in memory"),
-                    Value::Imm(imm) => regA = Box::new(imm.into()),
+                    Value::Imm(imm) => *self.get_reg(regA) = imm.into(),
                 }
             },
-            Value::Adr(_) => panic!("First argument to MOV cannot be an address in memory"),
+            Value::Adr(adr) => {
+                match b {
+                    Value::Reg(regB) => self.ram.store_reg(adr, self.get_reg(regB)),
+                    Value::Adr(_) => panic!("Second argument to MOV cannot be an address in memory"),
+                    Value::Imm(imm) => todo!(),
+                }
+            },
             Value::Imm(_) => panic!("First argument to MOV cannot be an immediate value"),
         }
     }
     pub fn MUL(&mut self, a: Value) {
         let a = match a {
-            Value::Reg(reg) => u16::from(*reg),
+            Value::Reg(reg) => u16::from(*self.get_reg(reg)),
             Value::Adr(adr) => self.ram.getw(adr),
             Value::Imm(imm) => imm,
         } as u32;
@@ -138,7 +157,7 @@ impl Cpu {
     pub fn SUB(&mut self, a: Value) {
         // this may not work i literally just swapped + to - and it might've broken things
         let a = match a {
-            Value::Reg(reg) => u16::from(*reg),
+            Value::Reg(reg) => u16::from(*self.get_reg(reg)),
             Value::Adr(adr) => self.ram.getw(adr),
             Value::Imm(imm) => imm,
         } as u32;

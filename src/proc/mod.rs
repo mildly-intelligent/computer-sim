@@ -77,25 +77,25 @@ impl Instruction {
     pub fn get_opcode(&self) -> u8 {
         match self {
             Self::DEC() =>    0x00,
-            Self::HLT() =>    0x00,
-            Self::INC() =>    0x00,
-            Self::NOP() =>    0x00,
-            Self::POP() =>    0x00,
-            Self::RCR() =>    0x00,
-            Self::RCL() =>    0x00,
-            Self::ROR() =>    0x00,
-            Self::ROL() =>    0x00,
-            Self::ADC(_) =>   0x00,
-            Self::ADD(_) =>   0x00,
-            Self::AND(_) =>   0x00,
-            Self::DIV(_) =>   0x00,
-            Self::MUL(_) =>   0x00,
-            Self::NOT(_) =>   0x00,
-            Self::OR(_) =>    0x00,
-            Self::PUSH(_) =>  0x00,
-            Self::SUB(_) =>   0x00,
-            Self::XOR(_) =>   0x00,
-            Self::MOV(_,_) => 0x00,
+            Self::HLT() =>    0x01,
+            Self::INC() =>    0x02,
+            Self::NOP() =>    0x03,
+            Self::POP() =>    0x04,
+            Self::RCR() =>    0x05,
+            Self::RCL() =>    0x06,
+            Self::ROR() =>    0x07,
+            Self::ROL() =>    0x08,
+            Self::ADC(_) =>   0x09,
+            Self::ADD(_) =>   0x0A,
+            Self::AND(_) =>   0x0B,
+            Self::DIV(_) =>   0x0C,
+            Self::MUL(_) =>   0x0D,
+            Self::NOT(_) =>   0x0E,
+            Self::OR(_) =>    0x0F,
+            Self::PUSH(_) =>  0x10,
+            Self::SUB(_) =>   0x11,
+            Self::XOR(_) =>   0x12,
+            Self::MOV(_,_) => 0x13,
         }
     }
 
@@ -153,6 +153,16 @@ impl Instruction {
             Self::ROL() => cpu.ROL(),
             Self::SUB(a) => cpu.SUB(a),
             Self::XOR(a) => cpu.XOR(a),
+        }
+    }
+}
+impl TryFrom<String> for Instruction {
+    type Error = assembler::Error;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.to_uppercase() {
+            ""
+            _ => Err(assembler::Error::UnknownInstruction(value.to_uppercase()))
         }
     }
 }

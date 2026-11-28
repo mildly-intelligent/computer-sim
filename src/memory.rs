@@ -28,7 +28,7 @@ impl Ram {
     }
 
     /// Stores a two-byte register `value` at `addr`
-    pub fn store_reg(&mut self, addr: u16, value: &Register) {
+    pub fn store_reg(&mut self, addr: u16, value: Box<Register>) {
         self.0[addr as usize] = value.low;
         self.0[addr as usize + 1] = value.high;
     }
@@ -54,6 +54,7 @@ impl std::fmt::Display for Ram {
 /// A two-byte value
 #[derive(Clone, Copy)]
 pub struct Register {
+    pub index: u8,
     pub high: u8,
     pub low: u8,
 }
@@ -74,7 +75,7 @@ impl std::fmt::Display for Register {
 }
 impl Default for Register {
     fn default() -> Self {
-        Self { high: 0x00, low: 0x00 }
+        Self { index: 0xFF, high: 0x00, low: 0x00 }
     }
 }
 impl From<Register> for u16 {
@@ -82,11 +83,12 @@ impl From<Register> for u16 {
         value.high as u16 * 0x100 + value.low as u16
     }
 }
-impl Into<Register> for u16 {
-    fn into(self) -> Register {
+impl From<u16> for Register {
+    fn from(value: u16) -> Register {
         Register {
-            high: ((self & 0xFF00) >> 8) as u8,
-            low: (self & 0x00FF) as u8
+            index: 0xFF,
+            high: ((value & 0xFF00) >> 8) as u8,
+            low: (value & 0x00FF) as u8
         }
     }
 }
