@@ -1,13 +1,34 @@
 use crate::memory::{Flags, Ram, Register};
 
 /// Contains the types that instructions can take
-pub enum Value<'a> {
+#[derive(Clone)]
+pub enum Value {
     /// A register
-    Reg(&'a mut Register),
+    Reg(Box<Register>),
     /// An address in memory
     Adr(u16),
     /// A direct value
     Imm(u16),
+}
+
+pub struct Value16 {
+    pub high: u8,
+    pub low: u8,
+}
+impl From<&Value> for Value16 {
+    fn from(value: &Value) -> Self {
+        match value {
+            Value::Reg(val) => Self {
+                high: val.high,
+                low: val.low,
+            },
+            Value::Adr(val)  |
+            Value::Imm(val) => Self {
+                high: ((val & 0xFF00) >> 8) as u8,
+                low: (val & 0x00FF) as u8,
+            },
+        }
+    }
 }
 
 /// CPU state container
@@ -32,9 +53,8 @@ pub struct Cpu {
 }
 
 #[allow(non_snake_case)]
+#[allow(unused)]
 impl Cpu {
-
-
     pub fn ADC(&mut self, a: Value) {todo!()}
     pub fn ADD(&mut self, a: Value) {
         let a = match a {
@@ -79,11 +99,11 @@ impl Cpu {
     // TODO: JUMPS
     pub fn MOV(&mut self, a: Value, b: Value) {
         match a {
-            Value::Reg(regA) => {
+            Value::Reg(mut regA) => {
                 match b {
-                    Value::Reg(regB) => *regA = *regB,
+                    Value::Reg(regB) => regA = regB,
                     Value::Adr(_) => panic!("Second argument to MOV cannot be an address in memory"),
-                    Value::Imm(imm) => *regA = imm.into(),
+                    Value::Imm(imm) => regA = Box::new(imm.into()),
                 }
             },
             Value::Adr(_) => panic!("First argument to MOV cannot be an address in memory"),
@@ -106,7 +126,7 @@ impl Cpu {
         }
     }
     // pub fn NEG(&mut self) {todo!()}
-    pub fn NOP() {todo!()}
+    pub fn NOP(&mut self) {}
     pub fn NOT(&mut self, a: Value) {todo!()}
     pub fn OR(&mut self, a: Value) {todo!()}
     pub fn POP(&mut self) {todo!()}
